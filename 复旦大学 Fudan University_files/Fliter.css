@@ -1,0 +1,86 @@
+#hotel-filter{padding: 10px 0;}
+/* 最小高度*/
+.hotel-filter-list-min{height: 36px;}
+/* 筛选外容器*/
+.hotel-filter-list{position: relative;font-size: 12px;border-bottom: 1px solid #eff2f5;overflow: hidden;zoom: 1;background-color: #fff;}
+/* 筛选icons*/
+.hotel-filter-list i{position: absolute;overflow: hidden;cursor: pointer;background: transparent url("./images/list_i.gif") 0 0 no-repeat;}
+/* reset*/
+.hotel-filter-list ul, 
+.hotel-filter-list li{margin: 0;padding: 0;list-style: none;overflow: hidden;zoom: 1;}
+.hotel-filter-list ul{*width: 700px;/*IE7专用*/}
+.hotel-filter-list li{*white-space: nowrap;/*IE7专用*/}
+.hotel-filter-list strong{font-weight: 400;}
+.hotel-filter-list-hidden{display: none;}
+/* 筛选分类标题*/
+.hotel-filter-list .tit{float: left;width: 60px;height: 24px;line-height: 24px;margin-top: 6px;padding-left: 3px;padding-right:3px;font-weight:bold;color: #000000;text-align:right;}
+/* 筛选分类列表容器*/
+.hotel-filter-list .con{overflow: hidden;zoom: 1;padding: 0 40px 6px 0;}
+/* 筛选全局*/
+.hotel-filter-list .con li{float: left;height: 24px;display: inline;margin-top: 6px;line-height: 24px;margin-right:10px;}
+.hotel-filter-list .con a{position: relative;float: left;color: #0c0c0c;padding: 0 10px;text-decoration: none;text-transform:uppercase;}
+/* 筛选不限*/
+.hotel-filter-list .con .any{float: left;width: 54px;height: 24px;margin-top: 6px;line-height: 24px;}
+.hotel-filter-list .con .any li{margin-top: 0;}
+.hotel-filter-list .con .any a{padding-left: 10px;}
+.hotel-filter-list .con .any a:hover{background-color: #eff2f5;}
+.hotel-filter-list .con .any a.selected, 
+.hotel-filter-list .con .any a.selected:hover{color: #fff;cursor: text;background-color: #733b68;}
+/* 单选类型*/
+.hotel-filter-list .radio{}
+.hotel-filter-list .radio a:hover{background-color: #eff2f5;}
+.hotel-filter-list .radio a.selected, 
+.hotel-filter-list .radio a.selected:hover{color: #fff;cursor: text;background-color: #96a9b5;}
+/* 多选类型*/
+
+.hotel-filter-list .checkbox{}
+.hotel-filter-list .checkbox a{/* padding-left: 28px; */background-color: transparent;}
+.hotel-filter-list .checkbox a:hover{color: #733b68;}
+.hotel-filter-list .checkbox a i{display:none; width: 10px;height: 10px;background: transparent;}
+.hotel-filter-list .checkbox a.selected{background: #1f4fa0;border-radius: 15px;color:#fff;position:relative;}
+.hotel-filter-list .checkbox a.selected i{background:#989898 url('images/checked.png'); position:absolute; top:0px; right:0px;}
+.hotel-filter-list .checkbox a.disabled{color: #999;cursor: not-allowed;}
+.hotel-filter-list .checkbox a.disabled i{opacity: 0.5;filter: alpha(opacity=50);cursor: not-allowed;}
+
+/* 更多按钮*/
+.hotel-filter-list .more{position: absolute;top: 6px;right: 0;height: 24px;line-height: 24px;color: #43647f;cursor: pointer;padding-right: 15px;}
+.hotel-filter-list .more i{top: 50%;right: 0;width: 7px;height: 4px;margin-top: -2px;background-position: 0 0;}
+/* 已选筛选条件*/
+.hotel-filter-list .selected-query{padding-right: 0;}
+.hotel-filter-list .selected-query li{width: auto;margin-right: 3px;height: 26px;margin-top: 6px;}
+.hotel-filter-list .selected-query a{color: #000;cursor: text;white-space: nowrap;padding-right: 23px;border: 1px solid #ddd;}
+.hotel-filter-list .selected-query a:hover{color: #000;cursor: text;white-space: nowrap;padding-right: 23px;border: 1px solid #7b7b7b;}
+.hotel-filter-list .selected-query a i{top: 50%;right: 5px;width: 14px;height: 13px;cursor: pointer;margin-top: -7px;background-position: 2px -86px;}
+.hotel-filter-list .selected-query .filter-query-clear{}
+.hotel-filter-list .selected-query .filter-query-clear a, 
+.hotel-filter-list .selected-query .filter-query-clear a:hover{color: #43647f;padding: 0 10px;cursor: pointer;background-color: transparent;}
+.hotel-filter-list .selected-query .filter-query-clear a:hover{background-color: #eff2f5;}
+/* 更多*/
+.hotel-filter-list .filter-more{position: absolute;top: 6px;right: 5px;width: auto;height: 24px;line-height: 24px;padding-right: 15px;color: #43647f;cursor: pointer;display: none;}
+.filter-list-has-more .filter-more{display: block;}
+.hotel-filter-list .filter-more i{top: 50%;right: 0;width: 7px;height: 4px;cursor: pointer;margin-top: -2px;background-position: 0 -44px;}
+.hotel-filter-list-min .filter-more i{background-position: 0 0;}
+.hotel-filter-list .filter-more .close{display: block;}
+.hotel-filter-list .filter-more .open{display: none;}
+.hotel-filter-list-min .filter-more .close{display: none;}
+.hotel-filter-list-min .filter-more .open{display: block;}
+
+/* 获得焦点时的输入框高光效果 */
+input:focus,
+textarea:focus {
+	border-color: rgba(82, 168, 236, 0.8);
+	outline: 0;
+	outline: thin dotted \9;
+	/* IE6-9 */  
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+}
+/* 避免对其他元素的不良影响(主要表现在IE浏览器中) */
+input[type="file"]:focus,
+input[type="radio"]:focus,
+input[type="checkbox"]:focus,
+select:focus {
+	outline: thin dotted #333;
+	outline: 5px auto -webkit-focus-ring-color;
+	outline-offset: -2px;
+	box-shadow: none;
+}

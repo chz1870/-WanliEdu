@@ -1,0 +1,762 @@
+;
+(function($){
+    $.fn.fwsSearch = function(opts){
+        var defaults = {
+			siteId: null,											//站点Id
+			columnId: null,											//栏目Id
+			url:'/_wp3services/generalQuery?queryObj=teacherHome',	//师资队伍检索接口
+			lang: 1,												//语言类型
+			scope:1,												//校级：0,，部门：1
+			displayType: 'filter',									//展示类型, 'list':栏目列表, 'select':下拉框, 'filter':条件筛选, 混搭时设置false,
+			category: false,										//是否展示分类,只有在列表形式下作用,
+			framebox:{												//文章的json数据
+				'list':{
+					active: true, 										
+					boxCon: '.fws_nav'
+				},
+				'select':{
+					active: true,
+					widthNum: 1,									//设置一行下拉的数量
+					boxCon: '.fws_select'
+				},
+				'filter':{
+					active: true, 										
+					boxCon: '.fws_fliter'
+				},
+				'searchBox':{
+					active: true, 										
+					boxCon: '.fws_searchbox'
+				}
+			},
+			sortWay:{												 //功能按钮
+				active: false,
+				sortField:[
+					{field: "visiCount", type: "desc", describe:"访问次数排序"}
+					//{field: "letter", type: "asc", describe:"首字母排序"},
+					//{field: "new", type: "desc", describe:"最新"}
+				],
+				boxCon: '.fws_sortway'
+			},
+			fieldData: [                								//导航数据，格式如下
+				{title:"在职人员",name:"副教授,副研究员,高级工程师",children:"教授2,副教授2,讲师2",type:"0",ways:'select'},
+				//{title:"一级名称",name:"点击一级时检索内容,已','号链接",children:"下拉菜单数据,已','号链接",type:检索字段编码（参数conditFeild）的序号，已0开头,ways:字段显示的方式},
+			],
+			fieldJson: [], 								 			 //文章的json数据			
+			pageIndex: 1,		  						 			 //默认第一页开始
+			rows: 20, 			  						 			 //每页显示多少篇文章
+			orderData:[									 			 //排序方式
+				{field: "firstLetter", type: "asc"}
+			],
+			conditFeild:[                                 			 //检索需要的字段||检索查询条件
+				{type:"0", field:"career", judge:"="},
+				{type:"1", field:"firstLetter", judge:"like"},
+			],
+			returnInfosdata:[							  			 //检索返回的字段
+				{field: "title", name: "title"},
+				{field: "career", name: "career"},
+				{field: "visitCount", name: "visitCount"}
+			],
+			showType: 1,      						 			 //输出显示方式（以下面tpl参数设置优先） 1：人名+浏览次数  2：上图下文
+			tpl:function(data){							 			 //输出结构
+				return '<li class="news"><span class="news_title">'+data.title+'</span></li>';
+			},    
+			waterFall:false,
+            callback: function(){}									 //回调函数（参数为当前结构，检索结果，配置项）
+            //paging: true,
+            //isMobile: false
+        };
+        var o = $.extend(true, {}, defaults, opts);
+        return this.each(function(){
+			$('html').addClass("fws_searchs");
+			var c = $(this);
+			c.wrapInner('<div class="fws_box"><div class="listTable"><ul class="news_list clearfix"></ul></div></div>');
+			var $listTable = c.find('.listTable');
+			var $wp_paging = c.find('.wp_paging');
+			var pageIndex = o.pageIndex,item = '',type = '';
+			url = o.url,
+			rows = o.rows,
+			showType= o.showType,
+			pageCount = 0,
+			masonrys = true,
+			masonryOpen = true,
+			loadBtn = true;
+
+			function getSearchData(url,complete,showType,rows,keyword,orgId,pageIndex,orderData){
+				//console.log(keyword);
+				complete.addClass("loading");
+				var orders = JSON.stringify(getOrders(orderData)),conditions = JSON.stringify(getConditions(keyword,orgId)),returnInfos = JSON.stringify(getReturnInfos());
+				$.ajax({
+					url: url,
+					type: 'POST',
+					contentType: "application/x-www-form-urlencoded; charset=utf-8",
+					async: true,
+					dataType: 'json',
+					data: {
+						siteId: o.siteId,
+						columnId: o.columnId,
+						pageIndex: pageIndex,
+						rows: rows,
+						conditions: conditions,
+						orders: orders,
+						returnInfos: returnInfos,
+						articleType: 1,
+						scope:o.scope
+					},
+					success: function(result){
+						/*if(masonrys){
+							complete.children(".news_list").children().remove();
+						}*/
+						
+						if(!o.waterFall){
+							//正常清除结构
+							complete.children(".news_list").children().remove();
+							complete.next().remove();
+						}else{
+							if(masonrys)complete.children(".news_list").children().remove();
+						}
+						
+						//complete.next().remove();
+						if(result != null){
+							pageCount = result.pageCount;
+							$listTable.removeClass("loading");
+							if(result.data.length > 0){
+								setTempTpl(result,complete,showType,rows,keyword,orgId);
+								//pageTpl(result,complete,pageIndex,rows);
+								//pageClick(rows,item,type);
+							}else{
+								$listTable.children().html('<div class="error">未检索到相关信息！</div>');
+							}
+						}
+						if(typeof o.callback === "function"){
+							o.callback.call(this, result, o);
+						}
+					}
+				});
+			}
+			
+			/*模板结构*/
+			function setTempTpl(result,complete,showType,rows,keyword,orgId){
+				var html = "",items = '';
+				var tecCount = Math.min(rows, result.data.length);
+				if(typeof keyword !== 'object')items = keyword.split(",");
+				if(o.category && orgId != '' && items.length > 1 && o.displayType !== 'filter'){
+					if(o.showType && o.showType !== null){
+						var html = "",nameHtml = "";
+						$.each(items,function(index,name){
+							nameHtml =  '<div class="news_item list" >'+
+										'	<div class="news_tit"><div class="tit" type="'+orgId+'">'+name+'</div></div>'+
+										'	<div class="news_con">'+
+										'		<ul class="news_list clearfix"></ul>'+
+										'	</div>'+
+										'</div>';
+							$listTable.children().append(nameHtml);
+							
+							for (i = 0; i < tecCount; i++){
+								var art = result.data[i];
+								var tecUrl = art.cnUrl;
+								art.cnUrl = checkMobileURL(tecUrl);
+								if(name == $.trim(art[o.conditFeild[orgId].field])){
+									html = '<li class="news news'+showType+'">' + 
+											'	<div class="news_box">' + 
+											'		<span class="news_title">'+'<a href="' + art.cnUrl + '" target="_blank">' + art.title + '</a></span>' + 
+											'		<span class="news_count">(' + art.visitCount + ')</span>' + 
+											'	</div>' + 
+											'</li>';
+									complete.find(".news_item").eq(index).find(".news_list").append(html);				
+								}
+							}							
+						});
+					}
+				}else{
+					for (i = 0; i < tecCount; i++){
+						var art = result.data[i];
+						var tecUrl = art.cnUrl;
+						art.cnUrl = checkMobileURL(tecUrl);
+						if(o.showType && o.showType !== null){
+							if(showType == 1){
+								html += '<li class="news news'+showType+'">' + 
+										'	<div class="news_box">' + 
+										'		<span class="news_title">'+'<a href="' + art.cnUrl + '" target="_blank">' + art.title + '</a></span>' + 
+										'		<span class="news_count">(' + art.visitCount + ')</span>' + 
+										'	</div>' + 
+										'</li>';
+							}else if(showType == 2){
+								html += '<li class="news news_tu news'+showType+'">' + 
+										'	<a class="news_box clearfix" href="' + art.cnUrl + '" target="_blank">' + 
+										'		<div class="news_img">' + 
+										'			<img src="' + art.headerPic + '"/>' + 
+										'		</div>' + 
+										'		<h3>' + art.title + '<span class="news_count">(' + art.visitCount + ')</span></h3>' + 
+										'	</a>' + 
+										'</li>';
+							}else if(showType == 3){
+								html += '<li class="news news_tu news'+showType+'">' + 
+										'	<a class="news_box clearfix" href="' + art.cnUrl + '" target="_blank">' + 
+										'		<div class="news_img">' + 
+										'			<img src="' + art.headerPic + '"/>' + 
+										'		</div>' + 
+										'		<div class="news_wz">' + 
+										'			<div class="news_title">' + art.title + '</div>' + 
+										'			<div class="news_meta">' + art.visitCount + '</div>' + 
+										'		</div> ' + 
+										'		<h3>' + art.title + '<span class="news_count">(' + art.visitCount + ')</span></h3>' + 
+										'	</a>' + 
+										'</li>';								
+							}
+						}else{
+							if(typeof o.tpl === "function" && o.tpl){
+								if(!o.waterFall){
+									var html = $(o.tpl(art)).delay(i*140).animate({opacity:"1"},1000);
+									complete.children(".news_list").append(html);
+								}else{
+									html += o.tpl(art);
+								}
+							}
+						}
+					}
+					//区分不同的输出结构
+					if(o.waterFall){
+						$items = $(html);
+						$items.css({ opacity: 0 });
+						var masonryOptions = {
+							itemSelector: '.news',
+							gutterWidth: 0,
+							animationOptions:{
+								queue: true,
+								duration: 800
+							}
+						};
+						complete.children(".news_list").append( $items );
+						var $girt = complete.children(".news_list").masonry(masonryOptions);
+						if(masonrys){
+							$girt.masonry('destroy');
+							$girt.imagesLoaded(function(){
+								$items.animate({opacity:1});
+								$girt.masonry(masonryOptions).masonry('layout');
+								masonrys = false;
+							});
+						}else{
+							$girt.imagesLoaded(function(){
+								$items.animate({opacity:1});
+								$girt.append( $items ).masonry('appended', $items );
+							});
+						}
+					}
+				}
+			}
+			
+			/*分页结构*/
+			function pageTpl(result,complete,pageIndex,rows){
+				var pageCount = result.pageCount;
+				var total = result.total;
+				var pageHtml =  '<div class="news_pages" >'+
+								' <ul class="wp_paging clearfix">'+
+								'   <li class="pages_count">'+
+								'     <span class="per_page">每页<em class="per_count">' + rows + '</em>条记录</span> '+
+								'     <span class="all_count">总共<em class="all_count">' + total + '</em>条记录</span> '+
+								'   </li> '+
+								'   <li class="new_page_nav">'+
+								'     <a class="first" href="javascript:void(0);"><span>首页</span></a> '+
+								'     <a class="prev" href="javascript:void(0);"  ><span>上一页</span></a> '+
+								'     <a class="next" href="javascript:void(0);" ><span>下一页</span></a> '+
+								'     <a class="last" href="javascript:void(0);"><span>尾页</span></a> '+
+								'   </li> '+
+								'   <li class="new_page_jump"> '+
+								'     <span class="pages">页码：<em class="curr_page" curr_page="' + pageIndex + '">' + pageIndex + '</em>/<em class="all_pages" pageCount="' + pageCount + '">' + pageCount + '</em></span> '+
+								'     <span><input class="pageNum" type="text" /><input type="hidden" class="currPageURL" value=""></span></span> '+
+								'     <span><a class="new_pagingJump" href="javascript:void(0);" target="_self">跳转</a></span> '+
+								'   </li> '+
+								' </ul> '+
+								'</div> ';
+				$(complete).after(pageHtml);
+			}
+			
+			//初始化
+			fwsSearchDate(showType,rows,item,type,pageIndex,orderData);
+			//分页点击事件
+			function pageClick(rows,item,type){
+				$(document).off();					 //移除所有元素上的 click 事件
+				initpageClick(rows,item,type); 		 //跳转页面
+				initFirstPageClick(rows,item,type);	 //首页
+				initLastPageClick(rows,item,type);	 //尾页
+				initPrevPageClick(rows,item,type); 	 //上一页
+				initNextPageClick(rows,item,type);   //下一页			
+			}
+
+			//初始化跳转页面
+			function initpageClick(rows,item,type){
+				$(document).on('click','.new_pagingJump',function(event){
+					var pageNum = c.find(".pageNum").val();
+					if (pageNum === "") {
+						alert("请输入页码！");
+						return;
+					}
+					var pageCount = c.find(".all_pages").attr("pageCount");
+					if (isNaN(pageNum) || pageNum <= 0 || pageNum > pageCount) {
+						alert("请输入正确页码！");
+						return;
+					}
+					fwsSearchDate(showType,rows,item,type,pageNum,orderData);
+				});
+			}
+			
+			//初始化首页
+			function initFirstPageClick(rows,item,type) {
+				$(document).on('click', ".new_page_nav .first", function(event) {
+					fwsSearchDate(showType,rows,item,type,1,orderData);
+				});
+			}
+			
+			//初始化尾页
+			function initLastPageClick(rows,item,type){
+				$(document).off().on('click', ".new_page_nav .last", function(event) {
+					var allPages = c.find(".all_pages").attr("pageCount");
+					fwsSearchDate(showType,rows,item,type,allPages,orderData);
+				});
+			}
+			
+			//初始化上一页
+			function initPrevPageClick(rows,item,type){
+				$(document).on('click', ".new_page_nav .prev", function(event) {
+					var pageCount = c.find(".curr_page").attr("curr_page");
+					var prev = --pageCount;
+					if (prev <= 0){
+						alert("当前为第一页");
+						return;
+					}
+					fwsSearchDate(showType,rows,item,type,prev,orderData);
+				});
+			}
+			
+			//初始化下一页
+			function initNextPageClick(rows,item,type){
+				$(document).on('click', ".new_page_nav .next", function(event){
+					var pageCount = c.find(".curr_page").attr("curr_page");
+					var next = ++pageCount;
+					var allPages = c.find(".all_pages").attr("pageCount");
+					if (allPages < next) {
+						alert("当前为最后一页");
+						return;
+					}
+					fwsSearchDate(showType,rows,item,type,next,orderData);
+				});
+			}
+			
+		
+			//判断是否到页面底部
+			function getScrollTop(){
+			　　var scrollTop = 0, bodyScrollTop = 0, documentScrollTop = 0;
+			　　if(document.body){
+			　　　　bodyScrollTop = document.body.scrollTop;
+			　　}
+			　　if(document.documentElement){
+			　　　　documentScrollTop = document.documentElement.scrollTop;
+			　　}
+			　　scrollTop = (bodyScrollTop - documentScrollTop > 0) ? bodyScrollTop : documentScrollTop;
+			　　return scrollTop;
+			}
+			//文档的总高度
+			function getScrollHeight(){
+			　　var scrollHeight = 0, bodyScrollHeight = 0, documentScrollHeight = 0;
+			　　if(document.body){
+			　　　　bodyScrollHeight = document.body.scrollHeight;
+			　　}
+			　　if(document.documentElement){
+			　　　　documentScrollHeight = document.documentElement.scrollHeight;
+			　　}
+			　　scrollHeight = (bodyScrollHeight - documentScrollHeight > 0) ? bodyScrollHeight : documentScrollHeight;
+			　　return scrollHeight;
+			}
+			function getWindowHeight(){
+			　　var windowHeight = 0;
+			　　if(document.compatMode == "CSS1Compat"){
+			　　　　windowHeight = document.documentElement.clientHeight;
+			　　}else{
+			　　　　windowHeight = document.body.clientHeight;
+			　　}
+			　　return windowHeight;
+			}
+			
+			
+			/*滚动加载||start*/
+			if(o.waterFall){
+				window.onscroll = function(){
+				　　if(getScrollTop() + getWindowHeight() == getScrollHeight()){
+						if(pageIndex == pageCount && pageIndex == 1){
+							$listTable.next("#infscr-loading").remove();
+							$listTable.after('<div id="infscr-loading"><div><em>加载完毕！</em></div></div>');
+							$listTable.next("#infscr-loading").animate({opacity:0},1200);
+						}else if(pageIndex == pageCount && pageIndex !== 1){
+							
+							$listTable.next("#infscr-loading").remove();
+							$listTable.after('<div id="infscr-loading"><div><em>加载完毕！</em></div></div>');
+							$listTable.next("#infscr-loading").animate({opacity:0},1200);
+							//if(loadBtn){
+							//	loadBtn = false;
+							//	fwsSearchDate(showType,rows,item,type,pageIndex);
+							//}
+						}else if(pageIndex < pageCount){
+							pageIndex++;
+							$listTable.next("#infscr-loading").remove();
+							$listTable.after('<div id="infscr-loading"><div><em>更多图片正在加载中...</em></div></div>');
+							//fwsSearchDate(showType,rows,item,type,pageIndex);
+							fwsSearchDate(showType,rows,resultsData,type,pageIndex,orderData);								
+							$listTable.next("#infscr-loading").animate({opacity:0},1200);
+							
+						}
+					}
+				}
+				/*滚动加载||End*/
+			}
+			
+			
+			
+			/*创建数组*/
+			var subData =[],resultsData = [],orderData = [],fieldData = o.fieldData;
+			$.each(fieldData,function(i,el){
+				subData.push([]);      //数据数组
+				resultsData.push({});  //请求数据数组
+			});		
+			
+
+			
+			/*导航*/
+			if(o.displayType === 'list'){
+				var html= "",subHtml = '',titles = [],fieldData = o.fieldData;
+				o.framebox['list'].active ? $navCon = $(o.framebox['list'].boxCon) : $navCon = c.find(".fws_box");
+				$navCon.wrapInner('<ul class="listnav" />');
+				$.each(fieldData,function(i,el){
+					html = '<li class="item i'+i+'" title="'+this.name+'" type="'+this.type+'">'+
+							'	<div class="itemcon"><span class="icon"> </span><a href="javascript:;"  class="column-link"><span class="column-name">'+this.title+'</span></a></div>'+
+							'</li>';
+					titles.push([]);
+					$navCon.find(".listnav").append(html);		
+					if(fieldData[i].children !=='' && fieldData[i].children !== undefined){
+						$navCon.find(".item").eq(i).append('<ul class="wp_subcolumn"></ul>');
+						if(typeof fieldData[i].children === 'string'){
+							var items = (fieldData[i].children).split(",");
+							$.each(items,function(index,val){
+								var subHtml='<li class="wp_column column-'+index+'" title="'+val+'" type="'+fieldData[i].type+'">'+
+										'	<a href="javascript:;"  target="_self"><span class="column-name">'+val+'</span></a>'+
+										'</li>';
+								titles[i].push(val);
+								$navCon.find(".item").eq(i).find("ul").append(subHtml);
+							});
+						}else{
+							var items = fieldData[i].children;
+							$.each(items,function(index,val){
+								var subHtml='<li class="wp_column column-'+index+'" title="'+val.title+'" type="'+fieldData[i].type+'">'+
+										'	<a href="javascript:;"  target="_self"><span class="column-name">'+val.title+'</span></a>'+
+										'</li>';
+								titles[i].push(val.title);
+								$navCon.find(".item").eq(i).find("ul").append(subHtml);										
+							});
+							$navCon.find(".item").eq(i).attr("title",titles[i].join(','));
+						}
+					}
+				});
+				
+				/*导航点击事件*/
+				$navCon.find(".listnav").find("li").each(function(){
+					var _this = $(this);
+					$(this).find(".itemcon").on("click",function(){
+						_this.children(".wp_subcolumn").slideToggle();
+						_this.siblings("li.item").children(".wp_subcolumn").slideUp();
+						_this.siblings("li").removeClass("hover");
+						_this.addClass("hover");
+						item = _this.attr("title");
+						type = _this.attr("type");
+						fwsSearchDate(showType,rows,item,type,pageIndex);
+					});
+					
+					$(this).find(".wp_column").on("click",function(){
+						$(this).siblings("li").removeClass("hover");
+						$(this).addClass("hover");
+						item = $(this).attr("title");
+						type = $(this).attr("type");
+						fwsSearchDate(showType,rows,item,type,pageIndex,orderData);
+					});
+				});
+			}
+			
+			//下拉方式
+			if(o.framebox['select'].active){
+				var html= "",sertchHtml='',subHtml = '',widthNum = '50%',fieldData = o.fieldData;
+				o.framebox['select'].boxCon !== '' ? $selectCon = $(o.framebox['select'].boxCon) : $selectCon = c.find(".fws_box");
+				$selectCon.prepend('<div class="selects_box clearfix"></div>');
+				var num = fieldData.length;
+				$.each(fieldData,function(i,el){
+					$selectCon.find(".selects_box").append('<div class="select_item" style="z-index:'+num+'"><div class="select_box"></div></div>');
+					num--;
+					if(this.ways == 'select' || o.displayType === 'select'){  //判断选择类型
+						html =  '<div class="sudy-select">'+
+								'	<div class="select-name" type="'+this.type+'">'+this.title+'：</div>'+
+								'</div>';
+						$selectCon.find('.select_item').eq(i).addClass("item").find(".select_box").append(html);
+						switch(o.framebox['select'].widthNum){
+							case 1:
+								widthNum = '100%';
+							break;
+							case 2:
+								widthNum = '50%';
+							break;
+							case 3:
+								widthNum = '33.3%';
+							break;
+							case 4:
+								widthNum = '25%';
+							break;
+							case 5:
+								widthNum = '20%';
+							break;	
+							default:
+								widthNum = '50%';							
+						}
+						$selectCon.find(".select_item.item").css("width",widthNum);
+						if(fieldData[i].children !=='' && fieldData[i].children !== undefined){
+							$selectCon.find('.select_item').eq(i).find(".sudy-select").append('<ul class="select-list"/>');
+							subHtml='<li title="'+this.title+'" type="'+this.type+'">'+this.title+'</li>';//添加默认标题
+							$selectCon.find(".select_item").eq(i).find(".select-list").append(subHtml);	
+							if(typeof fieldData[i].children === 'string'){
+								var items = (fieldData[i].children).split(",");
+								$.each(items,function(index,val){
+									subHtml='<li title="'+val+'" type="'+fieldData[i].type+'">'+val+'</li>';
+									$selectCon.find(".select_item").eq(i).find(".select-list").append(subHtml);										
+								});							
+							}else{
+								var items = fieldData[i].children;
+								$.each(items,function(index,val){
+									subHtml='<li title="'+val.title+'" type="'+fieldData[i].type+'">'+val.title+'</li>';
+									$selectCon.find(".select_item").eq(i).find(".select-list").append(subHtml);						
+								});
+							}
+						}
+					}
+				});
+				
+				/*下拉点击事件*/
+				$selectCon.find(".select_item.item").each(function(i,el){
+					var _this = $(this).find(".sudy-select"),
+					c = $(this).find(".select-name"),
+					e = $(this).find(".select-list"),
+					f = c.outerHeight();
+					function g() {
+						e.stop(true,true).slideDown(100);
+					}
+					function h(){
+						e.stop(true,false).slideUp(100);
+					}
+					e.children().css({
+						"padding-left": c.css("padding-left"),
+						"padding-right": c.css("padding-right")
+					}),
+					_this.addClass("select-down"), e.css({
+						top: f + "px",
+						bottom: "auto"
+					}),
+					c.on("click",function() {
+						c.toggleClass("select-open"), 
+						c.hasClass("select-open") ? g() : h(),
+						e.children().removeClass("hover");
+					}),
+					_this.on("mouseleave",function() {
+						c.removeClass("select-open"),
+						h();
+					}),
+					e.children().mouseenter(function(){
+						$(this).addClass("hover").siblings().removeClass("hover");
+					}),
+					e.children().on("click",function(){
+						c.text($(this).text()),
+						$(this).addClass("selected").siblings().removeClass("selected"),
+						c.removeClass("select-open"),
+						h();
+
+						$(this).text() == o.fieldData[i].title ? item = '' : item = $(this).text();
+						resultsData[i].val = item;
+						fwsSearchDate(showType,rows,resultsData,type,pageIndex,orderData);
+					});
+				});
+				
+			}
+			
+			//条件筛选
+			if(o.framebox['filter'].active){
+				o.framebox['filter'].boxCon !== '' ? $filterCon = $(o.framebox['filter'].boxCon) : $filterCon = c.find(".fws_box");
+				$filterCon.prepend('<div class="filter_box"></div>');
+				$.each(fieldData,function(i,el){
+					$filterCon.find(".filter_box").append('<div class="filter_item"></div>');
+					$filterCon.find(".filter_box").before('<input class="filter_value" type="hidden" data-type="'+this.type+'" value="">');
+					if(this.ways == 'filter' || o.displayType === 'filter'){  //判断选择类型
+						if(fieldData[i].children !=='' && fieldData[i].children !== undefined){	
+							if(typeof fieldData[i].children === 'string'){
+								var items = (fieldData[i].children).split(",");
+								$.each(items,function(index,val){
+									subData[i].push({"id":val,"text":val});		 			
+								});
+							}else{
+								var items = fieldData[i].children;
+								$.each(items,function(index,val){
+									subData[i].push({"id":val.title,"text":val.title});		 			
+								});
+							}
+						}
+						$filterCon.find(".filter_item").eq(i).comboboxfilter({
+							scope: '',			  //显示已选中
+							idField: 'id',		  //检索字段
+							textField: 'text',    //显示字段
+							text: this.title+'：',//类型名称
+							multiple: true,       //多选
+							data:subData[i],
+							onChange:function(newValue){
+								pageIndex = 1,masonrys = true;
+								$listTable.children(".news_list").masonry('destroy');
+								
+								$filterCon.find(".filter_value").eq(i).val(newValue);
+								resultsData[i].val = newValue;
+								fwsSearchDate(showType,rows,resultsData,type,pageIndex,orderData);
+								//item = resultsData;
+							}
+						});
+					}
+				});
+			}
+			
+			//搜索框
+			if(o.framebox['searchBox'].active){
+				o.framebox['searchBox'].boxCon !== '' ? $searchBoxCon = $(o.framebox['searchBox'].boxCon) : $searchBoxCon = c.find(".fws_box");
+				$searchBoxCon.prepend('<div class="search_box clearfix"></div>');
+				sertchHtml= '		<div class="select_search">'+
+							'			<input name="keyword" class="search_keyword" placeholder="请输入首字母或者关键字查询"></input>'+
+							'			<div class="search_btn"></div>'+
+							'		</div>';
+				$searchBoxCon.find(".search_box").append(sertchHtml);
+				resultsData.push({});		
+				/*下拉搜索点击事件*/
+				$searchBoxCon.find(".search_btn").on('click',function(){
+					pageIndex = 1,masonrys = true;
+					$listTable.children(".news_list").masonry('destroy');
+					var item = $searchBoxCon.find(".search_keyword").val();
+					resultsData[resultsData.length-1].val = item;
+					fwsSearchDate(showType,rows,resultsData,type,pageIndex,orderData);
+				});					
+			}
+			
+			//排序方式
+			if(o.sortWay.active){
+				o.sortWay.boxCon !== '' ? $sortwayCon = $(o.sortWay.boxCon) : $sortwayCon = c.find(".fws_box");
+				$sortwayCon.append('<div class="sortway_box"><ul class="sortway_con"></ul></div>');
+				var $sortway_con = $sortwayCon.find(".sortway_con");
+				$.each(o.sortWay['sortField'],function(index,val){
+					$sortway_con.append('<li class="item '+val.type+'" field="'+val.field+'" type="'+val.type+'">'+val.describe+'</li>');
+				});
+				$sortwayCon.find(".item").each(function(){
+					var _this = $(this);
+					var field = _this.attr("field");
+					$(this).on('click',function(){
+						var type = _this.attr("type"),type1 = '';
+						if(type == 'desc'){
+							type1 = 'asc';
+							_this.addClass("desc");
+						}else{
+							type1 = 'desc';
+							_this.addClass("asc");
+						}
+						_this.attr("type",type1);
+						_this.addClass("add").toggleClass("desc").toggleClass("asc");
+						_this.siblings().removeClass("add");
+						if((_this.hasClass("add")))type = type1;
+						orderData.length = 0;
+						orderData.push({field: field, type:type});
+						fwsSearchDate(showType,rows,resultsData,type,pageIndex,orderData);
+					});
+				});
+			}
+			
+			/*查询条件*/
+			function getConditions(val,type){
+				var conditdata = [],letterJson = [];
+				//判断条件是字段串
+				//console.log(val);
+				if(typeof val ==='string'){
+					if(val !== undefined && val !== ''){
+						var items = val.split(",");
+						if (o.conditFeild.length > 0){
+							$.each(o.conditFeild,function(index,value){
+								if(index == type){
+									$.each(items,function(i,el){
+										if(value.judge !== '=')el = '%'+el+'%';
+										letterJson.push({field:value.field, value:el, judge: value.judge});
+									});
+								}
+							});
+						}
+						if (letterJson != null && letterJson.length > 0){
+							conditdata.push({orConditions: letterJson});
+						}
+					}
+				//判断条件是数组
+				}else if(typeof val ==='object'){
+					//console.log(val);
+					$.each(val,function(index,v){
+						letterJson.push([]);
+						if(v.val !== undefined && v.val !== ''){
+							var items = v.val.split(",");
+							$.each(items,function(i,el){
+								if(o.conditFeild[index].judge !== '=')el = '%'+el+'%';
+								if(el.search(/[a-zA-Z]/) == 1 && o.conditFeild[index].field == 'title'){
+									letterJson[index].push({field:"shortTitle", value:el, judge: o.conditFeild[index].judge});
+								}else{
+									letterJson[index].push({field:o.conditFeild[index].field, value:el, judge: o.conditFeild[index].judge});
+								}
+							});
+							if (letterJson != null && letterJson.length > 0){
+								conditdata.push({orConditions: letterJson[index]});
+							}
+						}
+					});
+				}
+				
+				//conditdata.push({field:"language", value: o.lang, judge: "="});
+//conditdata.push({field:"f5", value:'是', judge: "="});
+
+				if(o.columnId == 4){
+					conditdata.push({field:"imgLogo", value:1, judge: "="});
+					conditdata.push({field:"f5", value:'是', judge: "="});
+					conditdata.push({field:"f6", value:'否', judge: "="});
+				}
+				conditdata.push({field:"scope", value:1, judge: "="});
+				return conditdata;
+			}
+			/*排序*/
+			function getOrders(orderData){
+				if(orderData == undefined || orderData == ''){
+					orderData = o.orderData;
+				}else{
+					orderData = orderData;
+				}
+				return orderData;
+			}
+			
+			/*返回属性*/
+			function getReturnInfos() {
+				var returnInfosdata = o.returnInfosdata;
+				return returnInfosdata;
+			}
+			
+			//判断是否移动端
+			function checkMobileURL(teachUrl) {
+				var localUrl = window.location.href;
+				if (localUrl.indexOf("mainm.") !== -1 || localUrl.indexOf("listm.") !== -1){
+					return teachUrl.replace("list.", "listm.");
+				}
+				return teachUrl;
+			}
+			
+			//对检索方法做精简
+			function fwsSearchDate(showType,rows,item,type,pageIndex,orderData){
+				return getSearchData(url,$listTable,showType,rows,item,type,pageIndex,orderData);
+			}
+        });
+    };
+})(jQuery);

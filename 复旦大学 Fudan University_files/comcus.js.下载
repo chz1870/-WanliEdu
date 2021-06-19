@@ -1,0 +1,231 @@
+$(function(){
+	$(".search-submit:not('.m')").click(function(event){
+		$(this).removeAttr("name");
+		event.preventDefault();
+		var val = $.trim($(".search-title").val());
+		if(val!==""){
+			$(".wp-search").find("form").submit();
+		}else{
+			alert("请输入关键词");
+		}
+		return false;
+	});
+	
+	/*导航*/
+	/*$.fn.sudyNav = function(){};
+	$(".wp-menu li").hover(function() {
+		$(this).siblings().find('.sub-menu').stop(true,true).slideUp(150)
+		$(this).children('.sub-menu').stop(true,true).slideDown(200);
+		$(this).addClass('hover');
+	}, function() {
+		$(this).children('.sub-menu').stop(true,true).slideUp(150);
+		$(this).removeClass('hover');
+    });
+	
+	$(".wp-menu li").each(function(){
+		$(this).children(".menu-switch-arrow").appendTo($(this).children(".menu-link"));
+	});*/
+	
+	/*媒体链接*/
+	$(".shares li").each(function(){
+		$(this).children("a").hover(function(){
+			$(this).parent().find(".con").stop(true,true).fadeIn();			
+		},function(){
+			$(this).parent().find(".con").stop(true,true).fadeOut();
+		});
+	});	
+	
+	/*友情链接*/
+	$(".post-81.p82 li.menu-item").each(function(){
+		$(this).hover(function(){
+			$(this).find(".sub-menu").stop(true,true).fadeIn();			
+		},function(){
+			$(this).find(".sub-menu").stop(true,true).fadeOut();
+		});
+	});
+	
+	var articleUrl = '/_s2/dhxglj/list.psp';
+	$.ajax({
+		url: articleUrl,
+		type: 'POST',
+		contentType: "application/x-www-form-urlencoded; charset=utf-8",
+		async: true,
+		dataType: 'html',
+		success: function(result){
+			var $results = $(result);
+			var $wpmenu = $(".wp-navi .wp-menu");
+			$results.find(".post").each(function(index,el){
+				$wpmenu.find(".menu-item").eq(index).find(".sub_bottom_text").append($(this).find(".subdatas").html())
+			});
+			//$wpmenu.find(".sub-item.i4-1").find(".nav_box").append(html);
+			$results.find(".tels").find(".subdatas img").each(function(index,el){
+				$wpmenu.find(".menu-item").eq(index).find(".sub_imgs").append(el)
+			});
+
+		}
+	});
+	
+	// 判断是否为移动端运行环境
+    if (/AppleWebKit.*Mobile/i.test(navigator.userAgent) || (/MIDP|SymbianOS|NOKIA|SAMSUNG|HUAWEI|OPPO|vivo|XIAOMI|LG|NEC|TCL|Alcatel|BIRD|DBTEL|Dopod|PHILIPS|HAIER|LENOVO|MOT-|Nokia|SonyEricsson|SIE-|Amoi|ZTE/.test(navigator.userAgent))){
+        if (window.location.href.indexOf("?mobile") < 0) {
+            try {
+                if (/Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent)) {
+                    // 判断访问环境是 Android|webOS|iPhone|iPod|BlackBerry 则运行以下脚本
+                }
+                else if (/iPad/i.test(navigator.userAgent)) {
+                    // 判断访问环境是 iPad 则加载以下样式
+                }
+                else {
+                    // 判断访问环境是 其他移动设备 则运行以下脚本
+                }
+            }
+            catch (e) {}
+        }
+    }
+	//pc端环境
+    else {
+        // 则运行以下脚本
+        intFixednav();
+    }
+	
+	
+	function intFixednav() {
+		$(window).scroll(function () {
+			var scrollTop = $(window).scrollTop();
+			if (scrollTop > 206){
+				$('.navbox').addClass("fixednav").stop().animate({  top: 0 }, 300);
+				$('.head-left').addClass("fixednav").stop().animate({  top: 0 }, 300);
+				$('#header').css({"z-index":1000});
+			}else{
+				$('.navbox').css({"top":'-68px'}).removeClass("fixednav").stop().animate({  top: "48px" }, 300);
+				$('.head-left').css({"top":'0px'}).removeClass("fixednav").stop().animate({  top: "0px" }, 300);
+				$('#header').css({"z-index":99});
+			}
+		});
+	}
+	
+
+/*页面底部的链接*/
+
+//文档的总高度
+function getScrollHeight(){
+　　var scrollHeight = 0, bodyScrollHeight = 0, documentScrollHeight = 0;
+　　if(document.body){
+　　　　bodyScrollHeight = document.body.scrollHeight;
+　　}
+　　if(document.documentElement){
+　　　　documentScrollHeight = document.documentElement.scrollHeight;
+　　}
+　　scrollHeight = (bodyScrollHeight - documentScrollHeight > 0) ? bodyScrollHeight : documentScrollHeight;
+　　return scrollHeight;
+}
+
+var Hh = getScrollHeight();
+/*var top1 = $("#fddx_gdssi1").offset().top;
+var top2 = $("#fddx_gdssi2").offset().top;
+var top3 = $("#fddx_gdssi3").offset().top;
+var top4 = $("#fddx_gdssi4").offset().top;
+var top5 = $("#fddx_gdssi5").offset().top;
+var top6 = $("#fddx_gdssi6").offset().top;*/
+
+$("#fddx_gdssi1").hover(function(){
+    $("#fddx_yxdw").css({
+        display: "block"
+    });
+    $("#fddx_yxdw").stop().animate({
+        opacity: 1
+		
+    },1000)},function() {
+    $("#fddx_yxdw").stop().animate({
+        opacity: 0
+    }, 100,function() {
+        $("#fddx_yxdw").css({
+            display: "none"
+        })
+    });
+});
+
+$("#fddx_gdssi2").hover(function(){
+    $("#fddx_yxdw2").css({
+        display: "block"
+    });
+    $("#fddx_yxdw2").stop().animate({
+        opacity: 1
+    },1000)},function() {
+    $("#fddx_yxdw2").stop().animate({
+        opacity: 0
+    },100,function() {
+        $("#fddx_yxdw2").css({
+            display: "none"
+        })
+    });
+});
+
+$("#fddx_gdssi3").hover(function(){
+    $("#fddx_yxdw3").css({
+        display: "block"
+    });
+    $("#fddx_yxdw3").stop().animate({
+        opacity: 1
+    },1000)},function() {
+    $("#fddx_yxdw3").stop().animate({
+        opacity: 0
+    },100,function() {
+        $("#fddx_yxdw3").css({
+            display: "none"
+        })
+    });
+});
+
+
+$("#fddx_gdssi4").hover(function(){
+    $("#fddx_yxdw4").css({
+        display: "block"
+    });
+    $("#fddx_yxdw4").stop().animate({
+        opacity: 1
+    },1000)},function() {
+    $("#fddx_yxdw4").stop().animate({
+        opacity: 0
+    },100,function() {
+        $("#fddx_yxdw4").css({
+            display: "none"
+        })
+    });
+});
+
+
+$("#fddx_gdssi5").hover(function(){
+    $("#fddx_yxdw5").css({
+        display: "block"
+    });
+    $("#fddx_yxdw5").stop().animate({
+        opacity: 1
+    },1000)},function() {
+    $("#fddx_yxdw5").stop().animate({
+        opacity: 0
+    },100,function() {
+        $("#fddx_yxdw5").css({
+            display: "none"
+        })
+    });
+});
+
+
+$(".fddx_yxdw").hover(function(){
+    $(this).css({
+        display: "block"
+    });
+    $(this).stop().animate({
+        opacity: 1
+    },1000)},function() {
+    $(this).stop().animate({
+        opacity: 0
+    },100,function() {
+        $(this).css({
+            display: "none"
+        })
+    });
+});
+
+});

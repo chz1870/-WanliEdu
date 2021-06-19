@@ -1,0 +1,7 @@
+//引入除插件外第三方文件;
+var EXTEND_PATH, exScripts = document.getElementsByTagName("script");
+EXTEND_PATH = exScripts[exScripts.length - 1].getAttribute("src").replace('common.js','');
+document.write('<link rel="stylesheet" type="text/css" href="'+EXTEND_PATH+'filter/Fliter.css" >');
+document.write('<link rel="stylesheet" type="text/css" href="'+EXTEND_PATH+'style.css" >');
+document.write('<script type="text/javascript" src="'+EXTEND_PATH+'filter/Filter.js"><\/script>');
+document.write('<script type="text/javascript" src="'+EXTEND_PATH+'search.js"><\/script>');
