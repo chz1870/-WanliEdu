@@ -1,0 +1,88 @@
+
+body{
+	margin: 0;
+	padding: 0;
+
+}
+.page{
+	/*background-color: black;*/
+	height: 1250px;
+	background-color: rgb(248,195,169);
+}
+.head1{
+	position: relative;
+}
+.head1Img{
+	width: 100%;
+
+}
+.logo1{
+	position: relative;
+	top: -3%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+.logo1Img{
+	width: 70%;
+}
+.divider{
+	height: 4px;
+	width: 100%;
+	background-color: rgb(219,65,26);
+	margin-top: 4%;
+}
+.paper{
+	height:890px;
+	width:80%;
+	background-color: white;
+	margin: -8% auto 0 auto;
+}
+.paper1Img{
+	width: 110%;
+	margin-top: 8%;
+	position: relative;
+	left: -5.5%;
+}
+.font1{
+	position: relative;
+	z-index: 999;
+	font-family:'宋体';
+	font-display: block;
+	color :white;
+	font-weight: 600;
+	font-size: 16px;
+	text-align: center;
+	margin-top: -16%;
+}
+.font2{
+	font-size: 12px;
+	text-indent:2em;
+    font-family: '宋体';
+    font-weight: bold;
+    margin-left: 5%;
+    margin-right: 5%; 
+}
+.img1{
+
+    margin-left: 15%;
+    margin-right: 15%; 
+}
+.img2{
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index:4;
+	top:8%;
+	margin-top: 20px;
+}
+.img3{
+	position: relative;
+
+	z-index:2;
+}
+.footer{
+	text-align: center;
+}
