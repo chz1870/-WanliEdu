@@ -1,0 +1,54 @@
+body{
+	margin: 0;
+	padding: 0;
+}
+.page{
+	/*background-color: black;*/
+	height:3100px;
+	background-color: rgb(119,171,221);
+}
+.head1{
+	position: relative;
+}
+.head1Img{
+	width: 100%;
+
+}
+.paper{
+	height:2510px;
+	width:80%;
+	background-color: white;
+	margin: 8% auto 0 auto;
+}
+.zwu{
+	margin-left:5%;
+	margin-right:5%;
+	/*margin-top: 5%;*/
+/*	width: 40%;*/
+}
+.paper1Img{
+	width: 110%;
+	margin-top: 8%;
+	position: relative;
+	left: -5.5%;
+}
+.font2{
+	font-size: 12px;
+	text-indent:2em;
+    font-family: '宋体';
+    font-weight: bold;
+    margin-left: 5%;
+    margin-right: 5%; 
+    line-height:200%
+}
+.endpicture{
+	/*height: 50%;*/
+	/*width:120px;
+	height: 45px;*/
+	margin-left: 12%;
+	/*width: 100%;*/
+
+}
+.footer{
+	text-align: center;
+}
