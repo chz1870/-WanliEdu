@@ -1,6 +1,8 @@
 body{
 	margin:0;
 	padding:0;
+	/*border-right: 0;
+	margin-right: 0;*/
 }
 .page{
 	/*background-color: black;*/
@@ -54,8 +56,8 @@ body{
 	/*left: -5.5%;*/
 }
 .picture{
-	width: 140%;
-	margin-left:-13%;
+	width: 100%;
+	
 	margin-top: 4%;
 	position: relative;
 }
