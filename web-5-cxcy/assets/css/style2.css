@@ -1,0 +1,74 @@
+body{
+	margin:0;
+	padding: 0;
+}
+.page{
+	height:2400px;
+	background-color: rgb(247,183,125);
+}
+.head1{
+	position: relative;
+}
+.head1Img1{
+	position: relative;
+	width: 100%;
+}
+.paper1{
+	height: 1095px;
+	width: 80%;
+	background-color: white;
+	margin: 8% auto 0 auto;
+}
+.zwu{
+	height:100px;
+/*	margin-top: 10%;*/
+	margin-left:5%;
+}
+.paper1Img{
+	width: 110%;
+	margin-top: -8%;
+	position: relative;
+	left: -5.5%;
+}
+.font2{
+	font-size: 12px;
+	line-height: 200%;
+	margin-left: 5%;
+	margin-right: 5%;
+	font-family: '宋体';
+	font-weight: bold;
+	text-indent:2em;
+}
+.paper1Img2{
+	width: 110%;
+	margin-top: 4%;
+	position: relative;
+	left: -5.5%;
+}
+.scancode1{
+	margin-left:40%;
+}
+.end1{
+	position: relative;
+	width: 100%;
+}
+.picture{
+	
+	width: 100%;
+}
+.paper2{
+	height: 470px;
+	width: 80%;
+	background-color: white;
+	margin: 0 auto 0 auto;
+}
+.nnu{
+	margin-left: -2%;
+}
+.end2{
+	position: relative;
+	width: 100%;
+}
+.footer{
+	text-align: center;
+}
