@@ -4,7 +4,7 @@ body{
 }
 .page{
 	/*background-color: black;*/
-	height:3100px;
+	height:3240px;
 	background-color: rgb(119,171,221);
 }
 .head1{
@@ -15,7 +15,7 @@ body{
 
 }
 .paper{
-	height:2510px;
+	height:2534px;
 	width:80%;
 	background-color: white;
 	margin: 8% auto 0 auto;
@@ -51,4 +51,10 @@ body{
 }
 .footer{
 	text-align: center;
+}
+.weiba{
+	text-align: center;
+	font-family: '黑体';
+	font-size:12px;
+	font-weight: bold;
 }
