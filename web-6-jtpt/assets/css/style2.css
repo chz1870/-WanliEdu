@@ -6,7 +6,7 @@ body{
 }
 .page{
 	/*background-color: black;*/
-	height:1500px;
+	height:1600px;
 	background-color: rgb(248,195,169);
 }
 .head1{
@@ -34,7 +34,7 @@ body{
 	margin-top: 4%;
 }
 .paper{
-	height:930px;
+	height:920px;
 	width:80%;
 	background-color: white;
 	margin: -8% auto 0 auto;
@@ -85,4 +85,10 @@ body{
 }
 .footer{
 	text-align: center;
+}
+.weiba{
+	text-align: center;
+	font-family: '黑体';
+	font-size:12px;
+	font-weight: bold;
 }
