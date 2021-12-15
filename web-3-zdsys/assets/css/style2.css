@@ -6,7 +6,7 @@ body{
 }
 .page{
 	/*background-color: black;*/
-	height:5000px;
+	height:5200px;
 	background-color: rgb(250,234,185);
 }
 .head1{
@@ -84,4 +84,10 @@ body{
 
 .footer{
 	text-align: center;
+}
+.weiba{
+    text-align: center;
+    font-family: '黑体';
+    font-size:12px;
+    font-weight: bold;
 }
