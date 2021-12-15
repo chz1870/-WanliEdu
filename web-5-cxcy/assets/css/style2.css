@@ -72,3 +72,9 @@ body{
 .footer{
 	text-align: center;
 }
+.weiba{
+    text-align: center;
+    font-family: '黑体';
+    font-size:12px;
+    font-weight: bold;
+}
